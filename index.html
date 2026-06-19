@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#081426">
 <title>2026世界杯观赛中心</title>
+<meta name="description" content="2026世界杯观赛中心：查看世界杯赛程、比分、小组积分、今日比赛、倒计时和收藏赛事。">
+<meta property="og:title" content="2026世界杯观赛中心">
+<meta property="og:description" content="赛程、比分、小组积分、今日比赛和收藏赛事一站查看。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 
 <style>
 :root{
@@ -276,6 +281,69 @@ h2{
     background:#334155;
 }
 
+.match-actions{
+    display:flex;
+    justify-content:center;
+    margin-top:12px;
+}
+
+.detail-toggle{
+    padding:7px 12px;
+    color:var(--muted);
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:rgba(8,20,38,.35);
+    cursor:pointer;
+}
+
+.detail-toggle:hover{
+    color:var(--gold);
+    border-color:var(--gold);
+}
+
+.match-details{
+    display:none;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--border);
+}
+
+.match.expanded .match-details{
+    display:block;
+}
+
+.detail-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+.detail-item{
+    padding:10px;
+    border:1px solid rgba(41,64,93,.72);
+    border-radius:10px;
+    background:rgba(8,20,38,.28);
+}
+
+.detail-label{
+    margin-bottom:4px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.detail-value{
+    color:var(--text);
+    font-size:13px;
+    line-height:1.45;
+}
+
+.cache-note{
+    display:block;
+    margin-top:10px;
+    color:var(--gold);
+    font-size:12px;
+}
+
 .teams{
     display:grid;
     grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
@@ -491,6 +559,10 @@ tbody tr:hover{
         font-size:23px;
     }
 
+    .detail-grid{
+        grid-template-columns:1fr;
+    }
+
     .guide-grid{
         grid-template-columns:repeat(2,minmax(0,1fr));
     }
@@ -664,6 +736,10 @@ const GROUP_NAMES = {
 
 const LIVE_STATUSES = new Set(["IN_PLAY","PAUSED","EXTRA_TIME","PENALTY_SHOOTOUT"]);
 const UPCOMING_STATUSES = new Set(["SCHEDULED","TIMED"]);
+const CACHE_KEYS = {
+    matches:"worldcup-cache-matches-v1",
+    standings:"worldcup-cache-standings-v1"
+};
 let allMatches = [];
 let allStandings = [];
 let activeMatchFilter = "all";
@@ -707,6 +783,31 @@ function formatDate(date){
         month:"numeric",
         day:"numeric",
         weekday:"short",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+    }).format(new Date(date));
+}
+
+function formatFullDate(date){
+    return new Intl.DateTimeFormat("zh-CN",{
+        timeZone:"Asia/Shanghai",
+        year:"numeric",
+        month:"numeric",
+        day:"numeric",
+        weekday:"short",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+    }).format(new Date(date));
+}
+
+function formatUpdatedDate(date){
+    if(!date) return "暂无";
+    return new Intl.DateTimeFormat("zh-CN",{
+        timeZone:"Asia/Shanghai",
+        month:"numeric",
+        day:"numeric",
         hour:"2-digit",
         minute:"2-digit",
         hour12:false
@@ -768,6 +869,101 @@ function teamLogo(team){
     return `<div class="team-fallback">⚽</div>`;
 }
 
+function scoreText(scorePart){
+    const home = scorePart?.home;
+    const away = scorePart?.away;
+    if(home === null || home === undefined || away === null || away === undefined){
+        return "暂无";
+    }
+    return `${home} - ${away}`;
+}
+
+function winnerText(winner){
+    const labels = {
+        HOME_TEAM:"主队胜",
+        AWAY_TEAM:"客队胜",
+        DRAW:"平局"
+    };
+    return labels[winner] || "未定";
+}
+
+function refereeText(referees){
+    const referee = referees?.find(item=>item.type === "REFEREE") || referees?.[0];
+    if(!referee) return "暂无";
+    return referee.nationality ? `${referee.name}（${referee.nationality}）` : referee.name;
+}
+
+function stageText(stage){
+    const labels = {
+        GROUP_STAGE:"小组赛",
+        LAST_32:"32强",
+        LAST_16:"16强",
+        QUARTER_FINALS:"四分之一决赛",
+        SEMI_FINALS:"半决赛",
+        THIRD_PLACE:"季军赛",
+        FINAL:"决赛"
+    };
+    return labels[stage] || stage || "暂无";
+}
+
+function cacheRead(key){
+    try{
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : null;
+    }catch(error){
+        return null;
+    }
+}
+
+function cacheWrite(key,data){
+    try{
+        localStorage.setItem(key,JSON.stringify({
+            savedAt:new Date().toISOString(),
+            data
+        }));
+    }catch(error){
+        // 浏览器禁用本地存储时忽略缓存失败。
+    }
+}
+
+function cacheNote(cached){
+    if(!cached?.savedAt) return "";
+    return `<span class="cache-note">正在显示上次成功加载的数据：${escapeHtml(formatUpdatedDate(cached.savedAt))}</span>`;
+}
+
+function renderMatchDetails(match){
+    return `
+        <div class="match-details">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">完整时间</div>
+                    <div class="detail-value">${escapeHtml(formatFullDate(match.utcDate))}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">赛事阶段</div>
+                    <div class="detail-value">${escapeHtml(stageText(match.stage))} · ${escapeHtml(groupName(match.group))}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">半场比分</div>
+                    <div class="detail-value">${escapeHtml(scoreText(match.score?.halfTime))}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">全场结果</div>
+                    <div class="detail-value">${escapeHtml(winnerText(match.score?.winner))}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">主裁判</div>
+                    <div class="detail-value">${escapeHtml(refereeText(match.referees))}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">数据更新</div>
+                    <div class="detail-value">${escapeHtml(formatUpdatedDate(match.lastUpdated))}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 function renderMatch(match){
     const status = statusInfo(match);
     const homeScore = match.score?.fullTime?.home;
@@ -779,7 +975,7 @@ function renderMatch(match){
         : `<span class="score upcoming">VS</span>`;
 
     return `
-        <article class="match">
+        <article class="match" data-match-id="${escapeHtml(match.id)}">
             <button class="favorite-button ${favoriteMatches.has(String(match.id)) ? "active" : ""}"
                 data-favorite="${escapeHtml(match.id)}"
                 aria-label="${favoriteMatches.has(String(match.id)) ? "取消收藏" : "收藏比赛"}"
@@ -806,6 +1002,10 @@ function renderMatch(match){
             <div class="match-top" style="margin:15px 0 0;justify-content:center">
                 <span>${escapeHtml(formatDate(match.utcDate))}</span>
             </div>
+            <div class="match-actions">
+                <button class="detail-toggle" data-detail="${escapeHtml(match.id)}">展开详情</button>
+            </div>
+            ${renderMatchDetails(match)}
         </article>
     `;
 }
@@ -973,6 +1173,7 @@ async function loadMatches(){
         const response = await fetch("/api/matches");
         if(!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        cacheWrite(CACHE_KEYS.matches,data);
         allMatches = data.matches || [];
 
         if(!matchesInitialized){
@@ -998,9 +1199,21 @@ async function loadMatches(){
         clearInterval(countdownTimer);
         countdownTimer = setInterval(renderOverview,30000);
     }catch(error){
-        document.getElementById("matches").innerHTML =
-            '<div class="empty">暂时无法获取赛程，请稍后刷新重试</div>';
-        document.getElementById("match-summary").textContent = "数据加载失败";
+        const cached = cacheRead(CACHE_KEYS.matches);
+        if(cached?.data?.matches?.length){
+            allMatches = cached.data.matches;
+            if(!matchesInitialized){
+                renderTeamFilter();
+                matchesInitialized = true;
+            }
+            renderOverview();
+            renderMatches();
+            document.getElementById("match-summary").insertAdjacentHTML("beforeend",cacheNote(cached));
+        }else{
+            document.getElementById("matches").innerHTML =
+                '<div class="empty">暂时无法获取赛程，请稍后刷新重试</div>';
+            document.getElementById("match-summary").textContent = "数据加载失败";
+        }
     }finally{
         document.getElementById("refresh-button").disabled = false;
     }
@@ -1011,12 +1224,21 @@ async function loadStandings(){
         const response = await fetch("/api/standings");
         if(!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
+        cacheWrite(CACHE_KEYS.standings,data);
         allStandings = data.standings || [];
         renderGroupTabs();
         renderStandings();
     }catch(error){
-        document.getElementById("standings").innerHTML =
-            '<div class="empty">暂时无法获取积分榜，请稍后刷新重试</div>';
+        const cached = cacheRead(CACHE_KEYS.standings);
+        if(cached?.data?.standings?.length){
+            allStandings = cached.data.standings;
+            renderGroupTabs();
+            renderStandings();
+            document.getElementById("standings").insertAdjacentHTML("beforebegin",cacheNote(cached));
+        }else{
+            document.getElementById("standings").innerHTML =
+                '<div class="empty">暂时无法获取积分榜，请稍后刷新重试</div>';
+        }
     }
 }
 
@@ -1032,6 +1254,14 @@ document.getElementById("match-tabs").addEventListener("click",event=>{
 });
 
 document.getElementById("matches").addEventListener("click",event=>{
+    const detailButton = event.target.closest("[data-detail]");
+    if(detailButton){
+        const card = detailButton.closest(".match");
+        const expanded = card.classList.toggle("expanded");
+        detailButton.textContent = expanded ? "收起详情" : "展开详情";
+        return;
+    }
+
     const button = event.target.closest("[data-favorite]");
     if(!button) return;
 
