@@ -3,64 +3,385 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#081426">
 <title>2026世界杯观赛中心</title>
 
 <style>
+:root{
+    color-scheme:dark;
+    --background:#081426;
+    --surface:#111f34;
+    --surface-light:#172941;
+    --border:#29405d;
+    --text:#f8fafc;
+    --muted:#9fb0c5;
+    --gold:#f6c453;
+    --green:#22c55e;
+    --red:#fb7185;
+}
+
+*{
+    box-sizing:border-box;
+}
+
 body{
     margin:0;
-    background:#0f172a;
-    color:#fff;
-    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    min-width:320px;
+    background:
+        radial-gradient(circle at 50% -10%, rgba(34,197,94,.16), transparent 32rem),
+        var(--background);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+
+button{
+    font:inherit;
 }
 
 header{
-    background:#111827;
-    padding:20px;
+    position:relative;
+    overflow:hidden;
+    padding:32px 20px;
     text-align:center;
-    border-bottom:1px solid #374151;
+    border-bottom:1px solid var(--border);
+    background:rgba(8,20,38,.86);
+}
+
+header::after{
+    content:"";
+    position:absolute;
+    inset:auto 15% 0;
+    height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
 
 h1{
     margin:0;
+    font-size:clamp(26px,4vw,42px);
+    letter-spacing:.02em;
+}
+
+.subtitle{
+    margin:10px 0 0;
+    color:var(--muted);
+    font-size:14px;
 }
 
 .container{
     max-width:1200px;
     margin:auto;
-    padding:20px;
+    padding:24px 20px 48px;
 }
 
 .card{
-    background:#1e293b;
-    border-radius:12px;
-    padding:20px;
-    margin-bottom:20px;
+    padding:24px;
+    margin-bottom:24px;
+    border:1px solid rgba(41,64,93,.8);
+    border-radius:18px;
+    background:rgba(17,31,52,.94);
+    box-shadow:0 20px 45px rgba(0,0,0,.14);
+}
+
+.section-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:18px;
+}
+
+h2{
+    margin:0;
+    font-size:22px;
+}
+
+.section-note{
+    margin:5px 0 0;
+    color:var(--muted);
+    font-size:13px;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:2px 0 8px;
+    scrollbar-width:none;
+}
+
+.tabs::-webkit-scrollbar{
+    display:none;
+}
+
+.tab{
+    flex:0 0 auto;
+    padding:8px 14px;
+    color:var(--muted);
+    border:1px solid var(--border);
+    border-radius:999px;
+    background:transparent;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.tab:hover,
+.tab.active{
+    color:#081426;
+    border-color:var(--gold);
+    background:var(--gold);
+}
+
+.loading,
+.empty{
+    padding:36px 20px;
+    color:var(--muted);
+    text-align:center;
+}
+
+.matches-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+
+.match{
+    position:relative;
+    padding:18px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:linear-gradient(145deg,var(--surface-light),rgba(17,31,52,.78));
+}
+
+.match-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:15px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.status{
+    padding:4px 8px;
+    border-radius:999px;
+    background:rgba(148,163,184,.12);
+}
+
+.status.live{
+    color:#04130a;
+    background:var(--green);
+}
+
+.status.finished{
+    color:#d8e2ee;
+    background:#334155;
+}
+
+.teams{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    align-items:center;
+    gap:12px;
+}
+
+.team{
+    min-width:0;
+    text-align:center;
+}
+
+.team img,
+.team-fallback{
+    width:48px;
+    height:48px;
+    margin:0 auto 8px;
+    object-fit:contain;
+}
+
+.team-fallback{
+    display:grid;
+    place-items:center;
+    color:var(--gold);
+    border-radius:50%;
+    background:rgba(246,196,83,.12);
+    font-weight:700;
+}
+
+.team-name{
+    overflow:hidden;
+    color:var(--text);
+    font-weight:650;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.score{
+    min-width:76px;
+    color:var(--gold);
+    font-size:26px;
+    font-weight:800;
+    text-align:center;
+}
+
+.score.upcoming{
+    color:var(--muted);
+    font-size:15px;
+    font-weight:600;
+}
+
+.standings-wrap{
+    overflow-x:auto;
 }
 
 table{
     width:100%;
+    min-width:650px;
     border-collapse:collapse;
 }
 
 th,td{
-    padding:12px;
-    border-bottom:1px solid #334155;
+    padding:12px 10px;
+    border-bottom:1px solid var(--border);
+    text-align:center;
+}
+
+th{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:600;
+}
+
+th:nth-child(2),
+td:nth-child(2){
     text-align:left;
 }
 
-.loading{
-    text-align:center;
-    padding:20px;
-    color:#94a3b8;
+tbody tr:hover{
+    background:rgba(255,255,255,.025);
 }
 
-.match{
-    padding:12px;
-    border-bottom:1px solid #334155;
+.rank{
+    color:var(--muted);
+    font-weight:700;
 }
 
-.match:last-child{
-    border-bottom:none;
+.rank.qualify{
+    color:var(--green);
+}
+
+.standing-team{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:150px;
+    font-weight:650;
+}
+
+.standing-team img{
+    width:28px;
+    height:28px;
+    object-fit:contain;
+}
+
+.points{
+    color:var(--gold);
+    font-size:17px;
+    font-weight:800;
+}
+
+.guide-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:12px;
+}
+
+.guide-item{
+    padding:16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(23,41,65,.65);
+}
+
+.guide-value{
+    margin-bottom:5px;
+    color:var(--gold);
+    font-size:20px;
+    font-weight:800;
+}
+
+.guide-label{
+    color:var(--muted);
+    font-size:13px;
+}
+
+@media(max-width:760px){
+    header{
+        padding:25px 16px;
+    }
+
+    h1{
+        font-size:24px;
+        white-space:nowrap;
+    }
+
+    .subtitle{
+        font-size:12px;
+    }
+
+    .container{
+        padding:16px 12px 32px;
+    }
+
+    .card{
+        padding:17px 14px;
+        margin-bottom:16px;
+        border-radius:15px;
+    }
+
+    .section-head{
+        display:block;
+    }
+
+    h2{
+        font-size:19px;
+    }
+
+    .tabs{
+        margin-top:14px;
+    }
+
+    .matches-grid{
+        grid-template-columns:1fr;
+    }
+
+    .match{
+        padding:15px 12px;
+    }
+
+    .team img,
+    .team-fallback{
+        width:42px;
+        height:42px;
+    }
+
+    .team-name{
+        font-size:14px;
+    }
+
+    .score{
+        min-width:62px;
+        font-size:23px;
+    }
+
+    .guide-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:360px){
+    h1{
+        font-size:21px;
+    }
 }
 </style>
 </head>
@@ -69,139 +390,378 @@ th,td{
 
 <header>
     <h1>🏆 2026 世界杯观赛中心</h1>
+    <p class="subtitle">赛程、比分与小组积分一站查看 · 时间均为北京时间</p>
 </header>
 
-<div class="container">
+<main class="container">
 
-    <div class="card">
-        <h2>📅 最新赛程</h2>
-        <div id="matches" class="loading">
-            正在加载...
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <h2>📅 世界杯赛程</h2>
+                <p class="section-note" id="match-summary">正在获取最新比赛数据...</p>
+            </div>
+            <div class="tabs" id="match-tabs" aria-label="赛程筛选">
+                <button class="tab active" data-filter="all">全部</button>
+                <button class="tab" data-filter="live">进行中</button>
+                <button class="tab" data-filter="upcoming">即将开始</button>
+                <button class="tab" data-filter="finished">已结束</button>
+            </div>
         </div>
-    </div>
+        <div id="matches" class="loading">正在加载...</div>
+    </section>
 
-    <div class="card">
-        <h2>📊 积分榜</h2>
-        <div id="standings" class="loading">
-            正在加载...
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <h2>📊 小组积分榜</h2>
+                <p class="section-note">绿色排名表示当前直接晋级区</p>
+            </div>
+            <div class="tabs" id="group-tabs" aria-label="小组筛选"></div>
         </div>
-    </div>
+        <div id="standings" class="loading">正在加载...</div>
+    </section>
 
-    <div class="card">
-        <h2>📖 观赛指南</h2>
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <h2>📖 观赛指南</h2>
+                <p class="section-note">世界杯首次扩军至48支球队</p>
+            </div>
+        </div>
+        <div class="guide-grid">
+            <div class="guide-item">
+                <div class="guide-value">3国</div>
+                <div class="guide-label">美国、加拿大、墨西哥联合举办</div>
+            </div>
+            <div class="guide-item">
+                <div class="guide-value">48支</div>
+                <div class="guide-label">参赛球队</div>
+            </div>
+            <div class="guide-item">
+                <div class="guide-value">104场</div>
+                <div class="guide-label">完整赛事规模</div>
+            </div>
+            <div class="guide-item">
+                <div class="guide-value">7月19日</div>
+                <div class="guide-label">决赛日</div>
+            </div>
+        </div>
+    </section>
 
-        <ul>
-            <li>举办国家：美国、加拿大、墨西哥</li>
-            <li>参赛球队：48支</li>
-            <li>比赛场次：104场</li>
-            <li>决赛时间：2026年7月19日</li>
-        </ul>
-    </div>
-
-</div>
+</main>
 
 <script>
+const TEAM_NAMES = {
+    "Algeria":"阿尔及利亚",
+    "Argentina":"阿根廷",
+    "Australia":"澳大利亚",
+    "Austria":"奥地利",
+    "Belgium":"比利时",
+    "Bosnia-Herzegovina":"波黑",
+    "Brazil":"巴西",
+    "Canada":"加拿大",
+    "Cape Verde Islands":"佛得角",
+    "Colombia":"哥伦比亚",
+    "Congo DR":"刚果（金）",
+    "Croatia":"克罗地亚",
+    "Curaçao":"库拉索",
+    "Czechia":"捷克",
+    "Ecuador":"厄瓜多尔",
+    "Egypt":"埃及",
+    "England":"英格兰",
+    "France":"法国",
+    "Germany":"德国",
+    "Ghana":"加纳",
+    "Haiti":"海地",
+    "Iran":"伊朗",
+    "Iraq":"伊拉克",
+    "Ivory Coast":"科特迪瓦",
+    "Japan":"日本",
+    "Jordan":"约旦",
+    "Mexico":"墨西哥",
+    "Morocco":"摩洛哥",
+    "Netherlands":"荷兰",
+    "New Zealand":"新西兰",
+    "Norway":"挪威",
+    "Panama":"巴拿马",
+    "Paraguay":"巴拉圭",
+    "Portugal":"葡萄牙",
+    "Qatar":"卡塔尔",
+    "Saudi Arabia":"沙特阿拉伯",
+    "Scotland":"苏格兰",
+    "Senegal":"塞内加尔",
+    "South Africa":"南非",
+    "South Korea":"韩国",
+    "Spain":"西班牙",
+    "Sweden":"瑞典",
+    "Switzerland":"瑞士",
+    "Tunisia":"突尼斯",
+    "Turkey":"土耳其",
+    "United States":"美国",
+    "Uruguay":"乌拉圭",
+    "Uzbekistan":"乌兹别克斯坦"
+};
 
-async function loadMatches(){
+const GROUP_NAMES = {
+    "Group A":"A组",
+    "Group B":"B组",
+    "Group C":"C组",
+    "Group D":"D组",
+    "Group E":"E组",
+    "Group F":"F组",
+    "Group G":"G组",
+    "Group H":"H组",
+    "Group I":"I组",
+    "Group J":"J组",
+    "Group K":"K组",
+    "Group L":"L组"
+};
 
-    try{
+const LIVE_STATUSES = new Set(["IN_PLAY","PAUSED","EXTRA_TIME","PENALTY_SHOOTOUT"]);
+const UPCOMING_STATUSES = new Set(["SCHEDULED","TIMED"]);
+let allMatches = [];
+let allStandings = [];
+let activeMatchFilter = "all";
+let activeGroup = 0;
 
-        const res = await fetch('/api/matches');
+function escapeHtml(value){
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
 
-        if(!res.ok){
-            throw new Error(`HTTP ${res.status}`);
-        }
+function teamName(team){
+    return TEAM_NAMES[team?.name] || team?.shortName || team?.name || "待定";
+}
 
-        const data = await res.json();
+function groupName(group){
+    if(!group) return "淘汰赛";
+    if(GROUP_NAMES[group]) return GROUP_NAMES[group];
+    return group.replace("GROUP_","") + "组";
+}
 
-        let html = '';
+function formatDate(date){
+    return new Intl.DateTimeFormat("zh-CN",{
+        timeZone:"Asia/Shanghai",
+        month:"numeric",
+        day:"numeric",
+        weekday:"short",
+        hour:"2-digit",
+        minute:"2-digit",
+        hour12:false
+    }).format(new Date(date));
+}
 
-        const matches = data.matches || [];
-
-        matches.slice(0,20).forEach(match=>{
-
-            html += `
-            <div class="match">
-                ${match.homeTeam?.name || '-'}
-                VS
-                ${match.awayTeam?.name || '-'}
-                <br>
-                ${new Date(match.utcDate).toLocaleString()}
-            </div>
-            `;
-        });
-
-        document.getElementById('matches').innerHTML =
-            html || '暂无赛程数据';
-
-    }catch(e){
-
-        document.getElementById('matches').innerHTML =
-        '暂时无法获取赛程';
-
+function statusInfo(match){
+    if(LIVE_STATUSES.has(match.status)){
+        return { text:"进行中", className:"live", type:"live" };
     }
 
+    if(match.status === "FINISHED"){
+        return { text:"已结束", className:"finished", type:"finished" };
+    }
+
+    if(match.status === "POSTPONED"){
+        return { text:"已延期", className:"finished", type:"other" };
+    }
+
+    return { text:"未开始", className:"", type:"upcoming" };
+}
+
+function teamLogo(team){
+    const name = escapeHtml(teamName(team));
+
+    if(team?.crest){
+        return `<img src="${escapeHtml(team.crest)}" alt="${name}队徽" loading="lazy" onerror="this.outerHTML='<div class=&quot;team-fallback&quot;>⚽</div>'">`;
+    }
+
+    return `<div class="team-fallback">⚽</div>`;
+}
+
+function renderMatch(match){
+    const status = statusInfo(match);
+    const homeScore = match.score?.fullTime?.home;
+    const awayScore = match.score?.fullTime?.away;
+    const hasScore = homeScore !== null && homeScore !== undefined &&
+        awayScore !== null && awayScore !== undefined;
+    const score = hasScore
+        ? `${homeScore} - ${awayScore}`
+        : `<span class="score upcoming">VS</span>`;
+
+    return `
+        <article class="match">
+            <div class="match-top">
+                <span>${escapeHtml(groupName(match.group))} · 第${escapeHtml(match.matchday || "-")}轮</span>
+                <span class="status ${status.className}">${status.text}</span>
+            </div>
+            <div class="teams">
+                <div class="team">
+                    ${teamLogo(match.homeTeam)}
+                    <div class="team-name" title="${escapeHtml(teamName(match.homeTeam))}">${escapeHtml(teamName(match.homeTeam))}</div>
+                </div>
+                <div>
+                    <div class="score">${score}</div>
+                </div>
+                <div class="team">
+                    ${teamLogo(match.awayTeam)}
+                    <div class="team-name" title="${escapeHtml(teamName(match.awayTeam))}">${escapeHtml(teamName(match.awayTeam))}</div>
+                </div>
+            </div>
+            <div class="match-top" style="margin:15px 0 0;justify-content:center">
+                <span>${escapeHtml(formatDate(match.utcDate))}</span>
+            </div>
+        </article>
+    `;
+}
+
+function renderMatches(){
+    const matchesElement = document.getElementById("matches");
+    let filtered = allMatches.filter(match=>{
+        const type = statusInfo(match).type;
+        return activeMatchFilter === "all" || type === activeMatchFilter;
+    });
+
+    filtered = filtered
+        .sort((a,b)=>new Date(a.utcDate)-new Date(b.utcDate))
+        .slice(0,activeMatchFilter === "all" ? 20 : 40);
+
+    const labels = {
+        all:"全部比赛",
+        live:"正在进行",
+        upcoming:"即将开始",
+        finished:"已结束"
+    };
+
+    document.getElementById("match-summary").textContent =
+        `${labels[activeMatchFilter]} · 共 ${filtered.length} 场${activeMatchFilter === "all" ? "（显示前20场）" : ""}`;
+
+    matchesElement.className = "";
+    matchesElement.innerHTML = filtered.length
+        ? `<div class="matches-grid">${filtered.map(renderMatch).join("")}</div>`
+        : `<div class="empty">当前没有${labels[activeMatchFilter]}的赛事</div>`;
+}
+
+function renderStandings(){
+    const standingsElement = document.getElementById("standings");
+    const group = allStandings[activeGroup];
+
+    if(!group){
+        standingsElement.className = "empty";
+        standingsElement.textContent = "暂无积分榜数据";
+        return;
+    }
+
+    const rows = group.table.map(entry=>`
+        <tr>
+            <td class="rank ${entry.position <= 2 ? "qualify" : ""}">${entry.position}</td>
+            <td>
+                <div class="standing-team">
+                    ${entry.team?.crest ? `<img src="${escapeHtml(entry.team.crest)}" alt="" loading="lazy">` : ""}
+                    <span>${escapeHtml(teamName(entry.team))}</span>
+                </div>
+            </td>
+            <td>${entry.playedGames}</td>
+            <td>${entry.won}</td>
+            <td>${entry.draw}</td>
+            <td>${entry.lost}</td>
+            <td>${entry.goalDifference > 0 ? "+" : ""}${entry.goalDifference}</td>
+            <td class="points">${entry.points}</td>
+        </tr>
+    `).join("");
+
+    standingsElement.className = "standings-wrap";
+    standingsElement.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>球队</th>
+                    <th>赛</th>
+                    <th>胜</th>
+                    <th>平</th>
+                    <th>负</th>
+                    <th>净胜球</th>
+                    <th>积分</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
+}
+
+function renderGroupTabs(){
+    const tabs = document.getElementById("group-tabs");
+    tabs.innerHTML = allStandings.map((group,index)=>`
+        <button class="tab ${index === activeGroup ? "active" : ""}" data-group="${index}">
+            ${escapeHtml(groupName(group.group))}
+        </button>
+    `).join("");
+}
+
+async function loadMatches(){
+    try{
+        const response = await fetch("/api/matches");
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        allMatches = data.matches || [];
+
+        if(allMatches.some(match=>statusInfo(match).type === "live")){
+            activeMatchFilter = "live";
+        }else if(allMatches.some(match=>statusInfo(match).type === "upcoming")){
+            activeMatchFilter = "upcoming";
+        }
+
+        document.querySelectorAll("#match-tabs .tab").forEach(tab=>{
+            tab.classList.toggle("active",tab.dataset.filter === activeMatchFilter);
+        });
+        renderMatches();
+    }catch(error){
+        document.getElementById("matches").innerHTML =
+            '<div class="empty">暂时无法获取赛程，请稍后刷新重试</div>';
+        document.getElementById("match-summary").textContent = "数据加载失败";
+    }
 }
 
 async function loadStandings(){
-
     try{
-
-        const res = await fetch('/api/standings');
-
-        if(!res.ok){
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        let html = '';
-
-        if(data.standings){
-
-            data.standings.forEach(group=>{
-
-                html += `
-                <h3>${group.group || ''}</h3>
-                <table>
-                <tr>
-                    <th>球队</th>
-                    <th>积分</th>
-                </tr>
-                `;
-
-                group.table.forEach(team=>{
-
-                    html += `
-                    <tr>
-                        <td>${team.team.name}</td>
-                        <td>${team.points}</td>
-                    </tr>
-                    `;
-
-                });
-
-                html += '</table><br>';
-
-            });
-
-        }
-
-        document.getElementById('standings').innerHTML =
-            html || '暂无积分榜数据';
-
-    }catch(e){
-
-        document.getElementById('standings').innerHTML =
-        '暂时无法获取积分榜';
-
+        const response = await fetch("/api/standings");
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        allStandings = data.standings || [];
+        renderGroupTabs();
+        renderStandings();
+    }catch(error){
+        document.getElementById("standings").innerHTML =
+            '<div class="empty">暂时无法获取积分榜，请稍后刷新重试</div>';
     }
-
 }
+
+document.getElementById("match-tabs").addEventListener("click",event=>{
+    const button = event.target.closest("[data-filter]");
+    if(!button) return;
+
+    activeMatchFilter = button.dataset.filter;
+    document.querySelectorAll("#match-tabs .tab").forEach(tab=>{
+        tab.classList.toggle("active",tab === button);
+    });
+    renderMatches();
+});
+
+document.getElementById("group-tabs").addEventListener("click",event=>{
+    const button = event.target.closest("[data-group]");
+    if(!button) return;
+
+    activeGroup = Number(button.dataset.group);
+    renderGroupTabs();
+    renderStandings();
+});
 
 loadMatches();
 loadStandings();
-
 </script>
 
 </body>
