@@ -344,6 +344,56 @@ h2{
     font-size:12px;
 }
 
+.odds-panel{
+    margin-top:14px;
+    padding:12px;
+    border:1px solid rgba(246,196,83,.38);
+    border-radius:12px;
+    background:rgba(246,196,83,.06);
+}
+
+.odds-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:10px;
+    color:var(--gold);
+    font-weight:800;
+}
+
+.odds-status{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:500;
+}
+
+.odds-row{
+    display:grid;
+    grid-template-columns:1.2fr repeat(3, minmax(0, .8fr));
+    gap:8px;
+    padding:9px 0;
+    border-top:1px solid rgba(41,64,93,.7);
+    align-items:center;
+}
+
+.odds-head{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.odds-price{
+    color:var(--text);
+    font-weight:800;
+}
+
+.odds-disclaimer{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
+}
+
 .teams{
     display:grid;
     grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
@@ -561,6 +611,11 @@ tbody tr:hover{
 
     .detail-grid{
         grid-template-columns:1fr;
+    }
+
+    .odds-row{
+        grid-template-columns:1fr repeat(3, minmax(0, .7fr));
+        font-size:12px;
     }
 
     .guide-grid{
@@ -960,8 +1015,88 @@ function renderMatchDetails(match){
                     <div class="detail-value">${escapeHtml(formatUpdatedDate(match.lastUpdated))}</div>
                 </div>
             </div>
+            <div class="odds-panel" id="odds-${escapeHtml(match.id)}" data-odds-state="idle">
+                <div class="odds-title">
+                    <span>赛前赔率</span>
+                    <span class="odds-status">展开后加载</span>
+                </div>
+                <div class="odds-disclaimer">赔率仅供赛事信息参考，不构成投注建议。</div>
+            </div>
         </div>
     `;
+}
+
+function renderOddsMessage(matchId,message){
+    const panel = document.getElementById(`odds-${matchId}`);
+    if(!panel) return;
+
+    panel.dataset.oddsState = "done";
+    panel.innerHTML = `
+        <div class="odds-title">
+            <span>赛前赔率</span>
+            <span class="odds-status">暂无数据</span>
+        </div>
+        <div class="odds-disclaimer">${escapeHtml(message)}<br>赔率仅供赛事信息参考，不构成投注建议。</div>
+    `;
+}
+
+function renderOddsData(matchId,data){
+    const panel = document.getElementById(`odds-${matchId}`);
+    if(!panel) return;
+
+    if(data.status !== "available" || !data.bookmakers?.length){
+        const messages = {
+            not_configured:"赔率 API 尚未配置。配置 ODDS_API_KEY 后可自动尝试加载。",
+            not_found:"当前比赛暂无可匹配赔率。",
+            provider_error:"赔率服务暂时不可用。"
+        };
+        renderOddsMessage(matchId,messages[data.status] || "暂无赔率数据。");
+        return;
+    }
+
+    const rows = data.bookmakers.map(bookmaker=>`
+        <div class="odds-row">
+            <div>
+                <div class="odds-price">${escapeHtml(bookmaker.name)}</div>
+                <div class="odds-head">${escapeHtml(formatUpdatedDate(bookmaker.lastUpdate))}</div>
+            </div>
+            <div class="odds-price">${escapeHtml(bookmaker.odds.home ?? "-")}</div>
+            <div class="odds-price">${escapeHtml(bookmaker.odds.draw ?? "-")}</div>
+            <div class="odds-price">${escapeHtml(bookmaker.odds.away ?? "-")}</div>
+        </div>
+    `).join("");
+
+    panel.dataset.oddsState = "done";
+    panel.innerHTML = `
+        <div class="odds-title">
+            <span>赛前赔率</span>
+            <span class="odds-status">${escapeHtml(data.provider || "赔率服务")}</span>
+        </div>
+        <div class="odds-row odds-head">
+            <div>博彩公司</div>
+            <div>主胜</div>
+            <div>平局</div>
+            <div>客胜</div>
+        </div>
+        ${rows}
+        <div class="odds-disclaimer">${escapeHtml(data.disclaimer || "赔率仅供赛事信息参考，不构成投注建议。")}</div>
+    `;
+}
+
+async function loadOdds(matchId){
+    const panel = document.getElementById(`odds-${matchId}`);
+    if(!panel || panel.dataset.oddsState === "loading" || panel.dataset.oddsState === "done") return;
+
+    panel.dataset.oddsState = "loading";
+    panel.querySelector(".odds-status").textContent = "加载中...";
+
+    try{
+        const response = await fetch(`/api/odds?matchId=${encodeURIComponent(matchId)}`);
+        const data = await response.json();
+        renderOddsData(matchId,data);
+    }catch(error){
+        renderOddsMessage(matchId,"赔率加载失败，请稍后重试。");
+    }
 }
 
 function renderMatch(match){
@@ -1259,6 +1394,9 @@ document.getElementById("matches").addEventListener("click",event=>{
         const card = detailButton.closest(".match");
         const expanded = card.classList.toggle("expanded");
         detailButton.textContent = expanded ? "收起详情" : "展开详情";
+        if(expanded){
+            loadOdds(detailButton.dataset.detail);
+        }
         return;
     }
 
