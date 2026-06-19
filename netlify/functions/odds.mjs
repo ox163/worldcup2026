@@ -10,6 +10,10 @@ function minutesBetween(firstDate, secondDate) {
   return Math.abs(new Date(firstDate) - new Date(secondDate)) / 60000;
 }
 
+function oddsApiDate(date) {
+  return new Date(date).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 function namesMatch(firstName, secondName) {
   const first = normalize(firstName);
   const second = normalize(secondName);
@@ -128,8 +132,8 @@ export default async (request) => {
   oddsUrl.searchParams.set("markets", markets);
   oddsUrl.searchParams.set("oddsFormat", "decimal");
   oddsUrl.searchParams.set("dateFormat", "iso");
-  oddsUrl.searchParams.set("commenceTimeFrom", new Date(Date.parse(match.utcDate) - 2 * 60 * 60 * 1000).toISOString());
-  oddsUrl.searchParams.set("commenceTimeTo", new Date(Date.parse(match.utcDate) + 2 * 60 * 60 * 1000).toISOString());
+  oddsUrl.searchParams.set("commenceTimeFrom", oddsApiDate(Date.parse(match.utcDate) - 2 * 60 * 60 * 1000));
+  oddsUrl.searchParams.set("commenceTimeTo", oddsApiDate(Date.parse(match.utcDate) + 2 * 60 * 60 * 1000));
 
   const response = await fetch(oddsUrl);
   const oddsEvents = await response.json();

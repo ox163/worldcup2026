@@ -2,6 +2,11 @@
 
 本项目使用语义化版本记录主要发布节点。
 
+## v0.6.1 - 2026-06-19
+
+- 修复 The Odds API 时间参数格式，移除 ISO 毫秒部分以符合 `YYYY-MM-DDTHH:MM:SSZ` 要求。
+- 验证 `soccer_fifa_world_cup` 与 `soccer_fifa_world_cup_winner` 当前可用。
+
 ## v0.6.0 - 2026-06-19
 
 - 新增第三方赔率 API 框架，预设对接 The Odds API。
