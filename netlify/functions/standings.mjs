@@ -18,7 +18,12 @@ export default async () => {
   );
 
   const data = await response.json();
-  return Response.json(data, { status: response.status });
+  return Response.json(data, {
+    status: response.status,
+    headers: {
+      "Netlify-CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=120"
+    }
+  });
 };
 
 export const config = {
