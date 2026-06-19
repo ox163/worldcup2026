@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026世界杯观赛中心</title>
+
+<style>
+body{
+    margin:0;
+    background:#0f172a;
+    color:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+header{
+    background:#111827;
+    padding:20px;
+    text-align:center;
+    border-bottom:1px solid #374151;
+}
+
+h1{
+    margin:0;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:12px;
+    border-bottom:1px solid #334155;
+    text-align:left;
+}
+
+.loading{
+    text-align:center;
+    padding:20px;
+    color:#94a3b8;
+}
+
+.match{
+    padding:12px;
+    border-bottom:1px solid #334155;
+}
+
+.match:last-child{
+    border-bottom:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🏆 2026 世界杯观赛中心</h1>
+</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>📅 最新赛程</h2>
+        <div id="matches" class="loading">
+            正在加载...
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📊 积分榜</h2>
+        <div id="standings" class="loading">
+            正在加载...
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>📖 观赛指南</h2>
+
+        <ul>
+            <li>举办国家：美国、加拿大、墨西哥</li>
+            <li>参赛球队：48支</li>
+            <li>比赛场次：104场</li>
+            <li>决赛时间：2026年7月19日</li>
+        </ul>
+    </div>
+
+</div>
+
+<script>
+
+async function loadMatches(){
+
+    try{
+
+        const res = await fetch('/api/matches');
+
+        if(!res.ok){
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        let html = '';
+
+        const matches = data.matches || [];
+
+        matches.slice(0,20).forEach(match=>{
+
+            html += `
+            <div class="match">
+                ${match.homeTeam?.name || '-'}
+                VS
+                ${match.awayTeam?.name || '-'}
+                <br>
+                ${new Date(match.utcDate).toLocaleString()}
+            </div>
+            `;
+        });
+
+        document.getElementById('matches').innerHTML =
+            html || '暂无赛程数据';
+
+    }catch(e){
+
+        document.getElementById('matches').innerHTML =
+        '暂时无法获取赛程';
+
+    }
+
+}
+
+async function loadStandings(){
+
+    try{
+
+        const res = await fetch('/api/standings');
+
+        if(!res.ok){
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        let html = '';
+
+        if(data.standings){
+
+            data.standings.forEach(group=>{
+
+                html += `
+                <h3>${group.group || ''}</h3>
+                <table>
+                <tr>
+                    <th>球队</th>
+                    <th>积分</th>
+                </tr>
+                `;
+
+                group.table.forEach(team=>{
+
+                    html += `
+                    <tr>
+                        <td>${team.team.name}</td>
+                        <td>${team.points}</td>
+                    </tr>
+                    `;
+
+                });
+
+                html += '</table><br>';
+
+            });
+
+        }
+
+        document.getElementById('standings').innerHTML =
+            html || '暂无积分榜数据';
+
+    }catch(e){
+
+        document.getElementById('standings').innerHTML =
+        '暂时无法获取积分榜';
+
+    }
+
+}
+
+loadMatches();
+loadStandings();
+
+</script>
+
+</body>
+</html>
