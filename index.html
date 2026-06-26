@@ -226,6 +226,128 @@ h2{
     gap:14px;
 }
 
+.knockout-overview{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(120px,1fr));
+    gap:10px;
+    margin-bottom:18px;
+}
+
+.knockout-step{
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(23,41,65,.62);
+}
+
+.knockout-step.active{
+    border-color:rgba(246,196,83,.7);
+    background:rgba(246,196,83,.08);
+}
+
+.knockout-step-title{
+    color:var(--text);
+    font-weight:800;
+}
+
+.knockout-step-meta{
+    margin-top:4px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.knockout-board{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(220px,1fr));
+    gap:14px;
+    overflow-x:auto;
+    padding-bottom:8px;
+}
+
+.knockout-column{
+    min-width:220px;
+}
+
+.knockout-column-title{
+    position:sticky;
+    top:0;
+    z-index:1;
+    padding:8px 0;
+    color:var(--gold);
+    font-weight:800;
+    background:rgba(17,31,52,.94);
+}
+
+.knockout-list{
+    display:grid;
+    gap:10px;
+}
+
+.knockout-match{
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:linear-gradient(145deg,var(--surface-light),rgba(17,31,52,.78));
+}
+
+.knockout-match.next{
+    border-color:rgba(246,196,83,.68);
+    box-shadow:0 0 0 1px rgba(246,196,83,.1) inset;
+}
+
+.knockout-match-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:10px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+.knockout-team{
+    display:grid;
+    grid-template-columns:24px minmax(0,1fr) auto;
+    align-items:center;
+    gap:8px;
+    padding:7px 0;
+}
+
+.knockout-team img,
+.knockout-team-fallback{
+    width:24px;
+    height:24px;
+    object-fit:contain;
+}
+
+.knockout-team-fallback{
+    display:grid;
+    place-items:center;
+    color:var(--muted);
+    border-radius:50%;
+    background:rgba(148,163,184,.12);
+    font-size:12px;
+}
+
+.knockout-team-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-weight:700;
+}
+
+.knockout-score{
+    color:var(--gold);
+    font-weight:800;
+}
+
+.knockout-time{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+}
+
 .match{
     position:relative;
     padding:18px;
@@ -590,6 +712,14 @@ tbody tr:hover{
         grid-template-columns:1fr;
     }
 
+    .knockout-overview{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .knockout-board{
+        grid-template-columns:repeat(6,260px);
+    }
+
     .match{
         padding:15px 12px;
     }
@@ -656,6 +786,16 @@ tbody tr:hover{
             <div class="overview-value" id="favorite-count">0 场</div>
             <div class="overview-meta" id="update-time">等待首次更新</div>
         </div>
+    </section>
+
+    <section class="card">
+        <div class="section-head">
+            <div>
+                <h2>🏟️ 淘汰赛对阵</h2>
+                <p class="section-note" id="knockout-summary">球队席位确定后会自动更新晋级路线</p>
+            </div>
+        </div>
+        <div id="knockout" class="loading">正在加载淘汰赛...</div>
     </section>
 
     <section class="card">
@@ -791,6 +931,14 @@ const GROUP_NAMES = {
 
 const LIVE_STATUSES = new Set(["IN_PLAY","PAUSED","EXTRA_TIME","PENALTY_SHOOTOUT"]);
 const UPCOMING_STATUSES = new Set(["SCHEDULED","TIMED"]);
+const KNOCKOUT_STAGES = [
+    "LAST_32",
+    "LAST_16",
+    "QUARTER_FINALS",
+    "SEMI_FINALS",
+    "THIRD_PLACE",
+    "FINAL"
+];
 const CACHE_KEYS = {
     matches:"worldcup-cache-matches-v1",
     standings:"worldcup-cache-standings-v1"
@@ -924,6 +1072,16 @@ function teamLogo(team){
     return `<div class="team-fallback">⚽</div>`;
 }
 
+function compactTeamLogo(team){
+    const name = escapeHtml(teamName(team));
+
+    if(team?.crest){
+        return `<img src="${escapeHtml(team.crest)}" alt="${name}队徽" loading="lazy">`;
+    }
+
+    return `<div class="knockout-team-fallback">?</div>`;
+}
+
 function scoreText(scorePart){
     const home = scorePart?.home;
     const away = scorePart?.away;
@@ -959,6 +1117,18 @@ function stageText(stage){
         FINAL:"决赛"
     };
     return labels[stage] || stage || "暂无";
+}
+
+function knockoutStageShort(stage){
+    const labels = {
+        LAST_32:"32强",
+        LAST_16:"16强",
+        QUARTER_FINALS:"1/4决赛",
+        SEMI_FINALS:"半决赛",
+        THIRD_PLACE:"三四名",
+        FINAL:"决赛"
+    };
+    return labels[stage] || stageText(stage);
 }
 
 function cacheRead(key){
@@ -1218,6 +1388,85 @@ function renderTeamFilter(){
         teams.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(teamName({name}))}</option>`).join("");
 }
 
+function renderKnockoutTeam(team,score){
+    return `
+        <div class="knockout-team">
+            ${compactTeamLogo(team)}
+            <div class="knockout-team-name" title="${escapeHtml(teamName(team))}">${escapeHtml(teamName(team))}</div>
+            <div class="knockout-score">${score === null || score === undefined ? "-" : escapeHtml(score)}</div>
+        </div>
+    `;
+}
+
+function renderKnockoutMatch(match,nextMatchId){
+    const status = statusInfo(match);
+    const homeScore = match.score?.fullTime?.home;
+    const awayScore = match.score?.fullTime?.away;
+
+    return `
+        <article class="knockout-match ${String(match.id) === String(nextMatchId) ? "next" : ""}">
+            <div class="knockout-match-top">
+                <span>#${escapeHtml(match.id)}</span>
+                <span class="status ${status.className}">${status.text}</span>
+            </div>
+            ${renderKnockoutTeam(match.homeTeam,homeScore)}
+            ${renderKnockoutTeam(match.awayTeam,awayScore)}
+            <div class="knockout-time">${escapeHtml(formatDate(match.utcDate))}</div>
+        </article>
+    `;
+}
+
+function renderKnockout(){
+    const knockoutElement = document.getElementById("knockout");
+    const knockoutMatches = allMatches
+        .filter(match=>KNOCKOUT_STAGES.includes(match.stage))
+        .sort((a,b)=>new Date(a.utcDate)-new Date(b.utcDate));
+
+    if(!knockoutMatches.length){
+        knockoutElement.className = "empty";
+        knockoutElement.textContent = "暂无淘汰赛数据";
+        return;
+    }
+
+    const now = new Date();
+    const nextMatch = knockoutMatches.find(match=>
+        UPCOMING_STATUSES.has(match.status) && new Date(match.utcDate) > now
+    );
+    const currentStage = nextMatch?.stage || knockoutMatches.find(match=>statusInfo(match).type !== "finished")?.stage || "FINAL";
+    const overview = KNOCKOUT_STAGES.map(stage=>{
+        const matches = knockoutMatches.filter(match=>match.stage === stage);
+        const finished = matches.filter(match=>match.status === "FINISHED").length;
+        return `
+            <div class="knockout-step ${stage === currentStage ? "active" : ""}">
+                <div class="knockout-step-title">${escapeHtml(knockoutStageShort(stage))}</div>
+                <div class="knockout-step-meta">${finished}/${matches.length} 场完成</div>
+            </div>
+        `;
+    }).join("");
+
+    const board = KNOCKOUT_STAGES.map(stage=>{
+        const matches = knockoutMatches.filter(match=>match.stage === stage);
+        return `
+            <div class="knockout-column">
+                <div class="knockout-column-title">${escapeHtml(knockoutStageShort(stage))}</div>
+                <div class="knockout-list">
+                    ${matches.map(match=>renderKnockoutMatch(match,nextMatch?.id)).join("")}
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const decided = knockoutMatches.filter(match=>match.homeTeam?.name && match.awayTeam?.name).length;
+    document.getElementById("knockout-summary").textContent =
+        `共 ${knockoutMatches.length} 场 · 已确定 ${decided} 场对阵${nextMatch ? ` · 下一场 ${formatDate(nextMatch.utcDate)}` : ""}`;
+
+    knockoutElement.className = "";
+    knockoutElement.innerHTML = `
+        <div class="knockout-overview">${overview}</div>
+        <div class="knockout-board" aria-label="淘汰赛晋级路线">${board}</div>
+    `;
+}
+
 function updateTimestamp(){
     document.getElementById("update-time").textContent =
         `最后更新 ${new Intl.DateTimeFormat("zh-CN",{
@@ -1327,6 +1576,7 @@ async function loadMatches(){
             tab.classList.toggle("active",tab.dataset.filter === activeMatchFilter);
         });
         renderOverview();
+        renderKnockout();
         renderMatches();
         updateTimestamp();
         scheduleRefresh();
@@ -1342,6 +1592,7 @@ async function loadMatches(){
                 matchesInitialized = true;
             }
             renderOverview();
+            renderKnockout();
             renderMatches();
             document.getElementById("match-summary").insertAdjacentHTML("beforeend",cacheNote(cached));
         }else{
