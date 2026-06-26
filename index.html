@@ -256,6 +256,213 @@ h2{
     font-size:12px;
 }
 
+.knockout-tree-wrap{
+    position:relative;
+    margin-bottom:20px;
+    padding:18px;
+    overflow-x:auto;
+    border:1px solid rgba(246,196,83,.22);
+    border-radius:18px;
+    background:
+        radial-gradient(circle at center, rgba(246,196,83,.16), transparent 28%),
+        linear-gradient(145deg,rgba(15,23,42,.88),rgba(17,31,52,.7));
+}
+
+.knockout-tree{
+    position:relative;
+    z-index:1;
+    display:grid;
+    grid-template-columns:170px 150px 140px 130px 190px 130px 140px 150px 170px;
+    gap:18px;
+    min-width:1380px;
+    min-height:760px;
+    align-items:stretch;
+}
+
+.knockout-lines{
+    position:absolute;
+    inset:18px;
+    z-index:0;
+    min-width:1380px;
+    height:760px;
+    pointer-events:none;
+}
+
+.knockout-lines path{
+    fill:none;
+    stroke:rgba(246,196,83,.28);
+    stroke-width:2;
+}
+
+.tree-column{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-around;
+    gap:12px;
+}
+
+.tree-column-title{
+    position:absolute;
+    top:0;
+    transform:translateY(-8px);
+    color:rgba(226,232,240,.72);
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.tree-column.left .tree-column-title{
+    left:0;
+}
+
+.tree-column.right .tree-column-title{
+    right:0;
+}
+
+.bracket-node{
+    position:relative;
+    z-index:2;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:rgba(17,31,52,.94);
+    box-shadow:0 16px 36px rgba(0,0,0,.18);
+}
+
+.bracket-node.next{
+    border-color:rgba(246,196,83,.72);
+    box-shadow:0 0 0 1px rgba(246,196,83,.12) inset,0 16px 36px rgba(0,0,0,.2);
+}
+
+.bracket-node-label{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.bracket-team{
+    display:grid;
+    grid-template-columns:20px minmax(0,1fr) auto;
+    align-items:center;
+    gap:7px;
+    padding:5px 0;
+}
+
+.bracket-team img,
+.bracket-team-fallback{
+    width:20px;
+    height:20px;
+    object-fit:contain;
+}
+
+.bracket-team-fallback{
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    color:var(--muted);
+    background:rgba(148,163,184,.12);
+    font-size:11px;
+}
+
+.bracket-team-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:12px;
+    font-weight:800;
+}
+
+.bracket-score{
+    color:var(--gold);
+    font-weight:900;
+}
+
+.bracket-time{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:11px;
+    text-align:center;
+}
+
+.champion-node{
+    display:grid;
+    place-items:center;
+    align-self:center;
+    min-height:210px;
+    padding:22px;
+    border:1px solid rgba(246,196,83,.56);
+    border-radius:24px;
+    background:
+        radial-gradient(circle at top,rgba(246,196,83,.24),transparent 52%),
+        rgba(17,31,52,.96);
+    text-align:center;
+    box-shadow:0 24px 60px rgba(0,0,0,.3);
+}
+
+.champion-kicker{
+    color:var(--gold);
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:.18em;
+}
+
+.champion-logo{
+    display:grid;
+    place-items:center;
+    width:68px;
+    height:68px;
+    margin:14px auto 10px;
+}
+
+.champion-logo img{
+    width:68px;
+    height:68px;
+    object-fit:contain;
+}
+
+.champion-fallback{
+    display:grid;
+    place-items:center;
+    width:68px;
+    height:68px;
+    border-radius:50%;
+    background:rgba(246,196,83,.15);
+    color:var(--gold);
+    font-size:30px;
+}
+
+.champion-name{
+    font-size:22px;
+    font-weight:950;
+}
+
+.champion-meta{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+}
+
+.third-place-note{
+    position:absolute;
+    left:50%;
+    bottom:18px;
+    z-index:3;
+    transform:translateX(-50%);
+    min-width:280px;
+    padding:10px 14px;
+    border:1px dashed rgba(148,163,184,.34);
+    border-radius:999px;
+    color:var(--muted);
+    background:rgba(15,23,42,.9);
+    font-size:12px;
+    text-align:center;
+}
+
 .knockout-board{
     display:grid;
     grid-template-columns:repeat(6,minmax(220px,1fr));
@@ -716,6 +923,21 @@ tbody tr:hover{
         grid-template-columns:repeat(2,minmax(0,1fr));
     }
 
+    .knockout-tree-wrap{
+        padding:14px;
+    }
+
+    .knockout-tree{
+        grid-template-columns:160px 145px 135px 125px 180px 125px 135px 145px 160px;
+        gap:14px;
+        min-width:1260px;
+    }
+
+    .knockout-lines{
+        inset:14px;
+        min-width:1260px;
+    }
+
     .knockout-board{
         grid-template-columns:repeat(6,260px);
     }
@@ -1082,6 +1304,26 @@ function compactTeamLogo(team){
     return `<div class="knockout-team-fallback">?</div>`;
 }
 
+function bracketTeamLogo(team){
+    const name = escapeHtml(teamName(team));
+
+    if(team?.crest){
+        return `<img src="${escapeHtml(team.crest)}" alt="${name}队徽" loading="lazy">`;
+    }
+
+    return `<div class="bracket-team-fallback">?</div>`;
+}
+
+function championLogo(team){
+    const name = escapeHtml(teamName(team));
+
+    if(team?.crest){
+        return `<img src="${escapeHtml(team.crest)}" alt="${name}队徽" loading="lazy">`;
+    }
+
+    return `<div class="champion-fallback">🏆</div>`;
+}
+
 function scoreText(scorePart){
     const home = scorePart?.home;
     const away = scorePart?.away;
@@ -1129,6 +1371,12 @@ function knockoutStageShort(stage){
         FINAL:"决赛"
     };
     return labels[stage] || stageText(stage);
+}
+
+function matchWinnerTeam(match){
+    if(match?.score?.winner === "HOME_TEAM") return match.homeTeam;
+    if(match?.score?.winner === "AWAY_TEAM") return match.awayTeam;
+    return null;
 }
 
 function cacheRead(key){
@@ -1416,6 +1664,139 @@ function renderKnockoutMatch(match,nextMatchId){
     `;
 }
 
+function renderBracketTeam(team,score){
+    return `
+        <div class="bracket-team">
+            ${bracketTeamLogo(team)}
+            <div class="bracket-team-name" title="${escapeHtml(teamName(team))}">${escapeHtml(teamName(team))}</div>
+            <div class="bracket-score">${score === null || score === undefined ? "-" : escapeHtml(score)}</div>
+        </div>
+    `;
+}
+
+function renderBracketNode(match,nextMatchId){
+    if(!match){
+        return `
+            <article class="bracket-node">
+                <div class="bracket-node-label">
+                    <span>席位待定</span>
+                    <span>未开始</span>
+                </div>
+                ${renderBracketTeam(null,null)}
+                ${renderBracketTeam(null,null)}
+                <div class="bracket-time">等待上轮结果</div>
+            </article>
+        `;
+    }
+
+    const status = statusInfo(match);
+    const homeScore = match.score?.fullTime?.home;
+    const awayScore = match.score?.fullTime?.away;
+
+    return `
+        <article class="bracket-node ${String(match.id) === String(nextMatchId) ? "next" : ""}">
+            <div class="bracket-node-label">
+                <span>${escapeHtml(knockoutStageShort(match.stage))}</span>
+                <span class="status ${status.className}">${status.text}</span>
+            </div>
+            ${renderBracketTeam(match.homeTeam,homeScore)}
+            ${renderBracketTeam(match.awayTeam,awayScore)}
+            <div class="bracket-time">${escapeHtml(formatDate(match.utcDate))}</div>
+        </article>
+    `;
+}
+
+function renderTreeColumn(stage,matches,side,nextMatchId){
+    const slots = {
+        LAST_32:8,
+        LAST_16:4,
+        QUARTER_FINALS:2,
+        SEMI_FINALS:1
+    }[stage] || matches.length;
+    const items = Array.from({length:slots},(_,index)=>matches[index] || null);
+
+    return `
+        <div class="tree-column ${side}">
+            <div class="tree-column-title">${escapeHtml(knockoutStageShort(stage))}</div>
+            ${items.map(match=>renderBracketNode(match,nextMatchId)).join("")}
+        </div>
+    `;
+}
+
+function renderBracketLines(){
+    const left = [
+        [[115,56],[205,102]], [[115,148],[205,102]],
+        [[115,240],[205,286]], [[115,332],[205,286]],
+        [[115,424],[205,470]], [[115,516],[205,470]],
+        [[115,608],[205,654]], [[115,700],[205,654]],
+        [[275,102],[362,194]], [[275,286],[362,194]],
+        [[275,470],[362,562]], [[275,654],[362,562]],
+        [[430,194],[500,378]], [[430,562],[500,378]]
+    ];
+    const right = left.map(([from,to])=>[
+        [1000 - from[0],from[1]],
+        [1000 - to[0],to[1]]
+    ]);
+
+    return [...left,...right].map(([from,to])=>{
+        const mid = (from[0] + to[0]) / 2;
+        return `<path d="M ${from[0]} ${from[1]} H ${mid} V ${to[1]} H ${to[0]}"></path>`;
+    }).join("");
+}
+
+function renderChampionNode(finalMatch){
+    const champion = matchWinnerTeam(finalMatch);
+    const finalStatus = finalMatch ? statusInfo(finalMatch) : null;
+    const championName = champion ? teamName(champion) : "冠军待定";
+    const finalMeta = finalMatch
+        ? `${formatDate(finalMatch.utcDate)} · ${finalStatus.text}`
+        : "等待半决赛胜者会师决赛";
+
+    return `
+        <div class="champion-node" aria-label="最终晋级队伍">
+            <div>
+                <div class="champion-kicker">FINAL WINNER</div>
+                <div class="champion-logo">${championLogo(champion)}</div>
+                <div class="champion-name">${escapeHtml(championName)}</div>
+                <div class="champion-meta">
+                    <div>最终晋级队伍</div>
+                    <div>${escapeHtml(finalMeta)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderKnockoutTree(matchesByStage,nextMatch){
+    const left = stage=>matchesByStage[stage].slice(0,Math.ceil(matchesByStage[stage].length / 2));
+    const right = stage=>matchesByStage[stage].slice(Math.ceil(matchesByStage[stage].length / 2));
+    const finalMatch = matchesByStage.FINAL[0];
+    const thirdPlaceMatch = matchesByStage.THIRD_PLACE[0];
+    const thirdPlaceText = thirdPlaceMatch
+        ? `三四名决赛：${formatDate(thirdPlaceMatch.utcDate)} · ${teamName(thirdPlaceMatch.homeTeam)} vs ${teamName(thirdPlaceMatch.awayTeam)}`
+        : "三四名决赛：等待半决赛结果";
+
+    return `
+        <div class="knockout-tree-wrap">
+            <svg class="knockout-lines" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+                ${renderBracketLines()}
+            </svg>
+            <div class="knockout-tree" aria-label="淘汰赛连线图">
+                ${renderTreeColumn("LAST_32",left("LAST_32"),"left",nextMatch?.id)}
+                ${renderTreeColumn("LAST_16",left("LAST_16"),"left",nextMatch?.id)}
+                ${renderTreeColumn("QUARTER_FINALS",left("QUARTER_FINALS"),"left",nextMatch?.id)}
+                ${renderTreeColumn("SEMI_FINALS",left("SEMI_FINALS"),"left",nextMatch?.id)}
+                ${renderChampionNode(finalMatch)}
+                ${renderTreeColumn("SEMI_FINALS",right("SEMI_FINALS"),"right",nextMatch?.id)}
+                ${renderTreeColumn("QUARTER_FINALS",right("QUARTER_FINALS"),"right",nextMatch?.id)}
+                ${renderTreeColumn("LAST_16",right("LAST_16"),"right",nextMatch?.id)}
+                ${renderTreeColumn("LAST_32",right("LAST_32"),"right",nextMatch?.id)}
+            </div>
+            <div class="third-place-note">${escapeHtml(thirdPlaceText)}</div>
+        </div>
+    `;
+}
+
 function renderKnockout(){
     const knockoutElement = document.getElementById("knockout");
     const knockoutMatches = allMatches
@@ -1444,8 +1825,15 @@ function renderKnockout(){
         `;
     }).join("");
 
+    const matchesByStage = Object.fromEntries(
+        KNOCKOUT_STAGES.map(stage=>[
+            stage,
+            knockoutMatches.filter(match=>match.stage === stage)
+        ])
+    );
+
     const board = KNOCKOUT_STAGES.map(stage=>{
-        const matches = knockoutMatches.filter(match=>match.stage === stage);
+        const matches = matchesByStage[stage];
         return `
             <div class="knockout-column">
                 <div class="knockout-column-title">${escapeHtml(knockoutStageShort(stage))}</div>
@@ -1463,6 +1851,7 @@ function renderKnockout(){
     knockoutElement.className = "";
     knockoutElement.innerHTML = `
         <div class="knockout-overview">${overview}</div>
+        ${renderKnockoutTree(matchesByStage,nextMatch)}
         <div class="knockout-board" aria-label="淘汰赛晋级路线">${board}</div>
     `;
 }
